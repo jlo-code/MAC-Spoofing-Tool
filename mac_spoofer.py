@@ -1,25 +1,38 @@
-from generate_mac import generate_mac
+import subprocess
+import argparse
+import re
 
-opt0 = generate_mac.total_random() 
-opt1 = generate_mac.total_random() 
-opt2 = generate_mac.total_random() 
-opt3 = generate_mac.total_random() 
+def change_mac(interface, new_mac):
+    print(f"Changing MAC address of {interface} to {new_mac}")
 
-print('Option 1: ' +opt0) 
-print('Option 2: ' +opt1) 
-print('Option 3: ' +opt2)
-print('Option 4: ' +opt3)
-print('Please choose a Mac Address option 1-4 as follows: ')
+    subprocess.call(["sudo", "ifconfig", interface, "down"])
+    subprocess.call(["sudo", "ifconfig", interface, "hw", "ether", new_mac])
+    subprocess.call(["sudo", "ifconfig", interface, "up"])
 
-choice = input()
-
-if choice == '1':
-    print(opt0)
-elif choice == '2':
-    print(opt1)
-elif choice == '3':
-    print(opt2)
-else:
-    print(opt3)
+def get_current_mac(interface):
+    ifconfig_result = subprocess.check_output(["ifconfig", interface]).decode('utf-8')
+    mac_address_search_result = re.search(r"(\w\w:\w\w:\w\w:\w\w:\w\w:\w\w)", ifconfig_result)
     
-print(choice)
+    if mac_address_search_result:
+        return mac_address_search_result.group(0)
+    else:
+        print("Could not read MAC address.")
+        return None
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="MAC address spoofer")
+    parser.add_argument("interface", help="Interface to change its MAC address")
+    parser.add_argument("new_mac", help="New MAC address")
+
+    args = parser.parse_args()
+
+    current_mac = get_current_mac(args.interface)
+    print(f"Current MAC address: {current_mac}")
+
+    change_mac(args.interface, args.new_mac)
+
+    current_mac = get_current_mac(args.interface)
+    if current_mac == args.new_mac:
+        print(f"MAC address successfully changed to {current_mac}")
+    else:
+        print("MAC address did not get changed.")
