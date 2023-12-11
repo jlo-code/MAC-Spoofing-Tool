@@ -6,3 +6,8 @@ Uses:
 -Circumventing Network Restrictions
 -Penetration Testing and Security Research
 -Avoiding Device Identification
+
+Dependencies inlcude,
+-subprocess
+-argparse
+-re
